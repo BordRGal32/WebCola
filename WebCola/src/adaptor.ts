@@ -188,7 +188,7 @@ module cola {
         /**
          * list of constraints of various types
          * @property constraints
-         * @type {array} 
+         * @type {array}
          * @default empty list
          */
         constraints(c: Array<any>): Array<any>|adaptor {
@@ -323,7 +323,7 @@ module cola {
         /**
          * start the layout process
          * @method start
-         * @param {number} [initialUnconstrainedIterations=0] unconstrained initial layout iterations 
+         * @param {number} [initialUnconstrainedIterations=0] unconstrained initial layout iterations
          * @param {number} [initialUserConstraintIterations=0] initial layout iterations with user-specified constraints
          * @param {number} [initialAllConstraintsIterations=0] initial layout iterations with all constraints including non-overlap
          */

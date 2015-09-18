@@ -45,23 +45,30 @@ var cola;
         }
         function plot(data, left, right, opt_x, opt_y) {
             // plot the cost function
-            var plot_svg = d3.select("body").append("svg").attr("width", function () {
-                return 2 * (right - left);
-            }).attr("height", 200);
+            var plot_svg = d3.select("body").append("svg")
+                .attr("width", function () { return 2 * (right - left); })
+                .attr("height", 200);
             var x = d3.time.scale().range([0, 2 * (right - left)]);
             var xAxis = d3.svg.axis().scale(x).orient("bottom");
-            plot_svg.append("g").attr("class", "x axis").attr("transform", "translate(0, 199)").call(xAxis);
+            plot_svg.append("g").attr("class", "x axis")
+                .attr("transform", "translate(0, 199)")
+                .call(xAxis);
             var lastX = 0;
             var lastY = 0;
             var value = 0;
             for (var r = left; r < right; r += 1) {
                 value = step(data, r);
                 // value = 1;
-                plot_svg.append("line").attr("x1", 2 * (lastX - left)).attr("y1", 200 - 30 * lastY).attr("x2", 2 * r - 2 * left).attr("y2", 200 - 30 * value).style("stroke", "rgb(6,120,155)");
+                plot_svg.append("line").attr("x1", 2 * (lastX - left))
+                    .attr("y1", 200 - 30 * lastY)
+                    .attr("x2", 2 * r - 2 * left)
+                    .attr("y2", 200 - 30 * value)
+                    .style("stroke", "rgb(6,120,155)");
                 lastX = r;
                 lastY = value;
             }
-            plot_svg.append("circle").attr("cx", 2 * opt_x - 2 * left).attr("cy", 200 - 30 * opt_y).attr("r", 5).style('fill', "rgba(0,0,0,0.5)");
+            plot_svg.append("circle").attr("cx", 2 * opt_x - 2 * left).attr("cy", 200 - 30 * opt_y)
+                .attr("r", 5).style('fill', "rgba(0,0,0,0.5)");
         }
         // actual assigning of position to nodes
         function put_nodes_to_right_positions(graphs) {
@@ -89,9 +96,7 @@ var cola;
         function apply(data, desired_ratio) {
             var curr_best_f = Number.POSITIVE_INFINITY;
             var curr_best = 0;
-            data.sort(function (a, b) {
-                return b.height - a.height;
-            });
+            data.sort(function (a, b) { return b.height - a.height; });
             min_width = data.reduce(function (a, b) {
                 return a.width < b.width ? a.width : b.width;
             });
@@ -187,9 +192,7 @@ var cola;
         ;
         function get_entire_width(data) {
             var width = 0;
-            data.forEach(function (d) {
-                return width += d.width + packingOptions.PADDING;
-            });
+            data.forEach(function (d) { return width += d.width + packingOptions.PADDING; });
             return width;
         }
         function get_real_ratio() {
@@ -356,13 +359,9 @@ var cola;
                 if (typeof g.padding === "undefined")
                     g.padding = 1;
                 if (typeof g.leaves !== "undefined")
-                    g.leaves.forEach(function (v, i) {
-                        (g.leaves[i] = _this._nodes[v]).parent = g;
-                    });
+                    g.leaves.forEach(function (v, i) { (g.leaves[i] = _this._nodes[v]).parent = g; });
                 if (typeof g.groups !== "undefined")
-                    g.groups.forEach(function (gi, i) {
-                        (g.groups[i] = _this._groups[gi]).parent = g;
-                    });
+                    g.groups.forEach(function (gi, i) { (g.groups[i] = _this._groups[gi]).parent = g; });
             });
             this._rootGroup.leaves = this._nodes.filter(function (v) { return typeof v.parent === 'undefined'; });
             this._rootGroup.groups = this._groups.filter(function (g) { return typeof g.parent === 'undefined'; });
@@ -409,9 +408,7 @@ var cola;
                 axis = 'y';
             this._directedLinkConstraints = {
                 axis: axis,
-                getMinSeparation: typeof minSeparation === 'number' ? function () {
-                    return minSeparation;
-                } : minSeparation
+                getMinSeparation: typeof minSeparation === 'number' ? function () { return minSeparation; } : minSeparation
             };
             return this;
         };
@@ -645,13 +642,9 @@ var cola;
             // subsequent iterations will apply all constraints
             this.avoidOverlaps(ao);
             if (ao) {
-                this._nodes.forEach(function (v, i) {
-                    v.x = x[i], v.y = y[i];
-                });
+                this._nodes.forEach(function (v, i) { v.x = x[i], v.y = y[i]; });
                 this._descent.project = new cola.vpsc.Projection(this._nodes, this._groups, this._rootGroup, curConstraints, true).projectFunctions();
-                this._nodes.forEach(function (v, i) {
-                    x[i] = v.x, y[i] = v.y;
-                });
+                this._nodes.forEach(function (v, i) { x[i] = v.x, y[i] = v.y; });
             }
             // allow not immediately connected nodes to relax apart (p-stress)
             this._descent.G = G;
@@ -776,21 +769,22 @@ var cola;
                 return adaptor;
             },
             kick: function (tick) {
-                d3.timer(function () {
-                    return adaptor.tick();
-                });
+                d3.timer(function () { return adaptor.tick(); });
             },
             // use `node.call(adaptor.drag)` to make nodes draggable
             drag: function () {
-                var drag = d3.behavior.drag().origin(function (d) {
-                    return d;
-                }).on("dragstart.d3adaptor", cola.colaDragstart).on("drag.d3adaptor", function (d) {
+                var drag = d3.behavior.drag()
+                    .origin(function (d) { return d; })
+                    .on("dragstart.d3adaptor", cola.colaDragstart)
+                    .on("drag.d3adaptor", function (d) {
                     d.px = d3.event.x, d.py = d3.event.y;
                     adaptor.resume(); // restart annealing
-                }).on("dragend.d3adaptor", cola.colaDragend);
+                })
+                    .on("dragend.d3adaptor", cola.colaDragend);
                 if (!arguments.length)
                     return drag;
-                this.call(drag);
+                this //.on("mouseover.adaptor", colaMouseover)
+                    .call(drag);
             }
         });
         return adaptor;
@@ -1125,7 +1119,9 @@ var cola;
             return disp;
         };
         Descent.mid = function (a, b, m) {
-            Descent.mApply(a.length, a[0].length, function (i, j) { return m[i][j] = a[i][j] + (b[i][j] - a[i][j]) / 2.0; });
+            Descent.mApply(a.length, a[0].length, function (i, j) {
+                return m[i][j] = a[i][j] + (b[i][j] - a[i][j]) / 2.0;
+            });
         };
         Descent.prototype.takeDescentStep = function (x, d, stepSize) {
             for (var i = 0; i < this.n; ++i) {
@@ -1268,7 +1264,7 @@ var cola;
                     while (H.length > 1) {
                         // test if  P[i] is left of the line at the stack top
                         if (isLeft(H[H.length - 2], H[H.length - 1], P[i]) > 0)
-                            break;
+                            break; // P[i] is a new hull  vertex
                         else
                             H.length -= 1; // pop top point off  stack
                     }
@@ -1287,7 +1283,7 @@ var cola;
                     while (H.length > bot) {
                         // test if  P[i] is left of the line at the stack top
                         if (isLeft(H[H.length - 2], H[H.length - 1], P[i]) > 0)
-                            break;
+                            break; // P[i] is a new hull  vertex
                         else
                             H.length -= 1; // pop top point off  stack
                     }
@@ -1604,16 +1600,20 @@ var cola;
                     var w1w2v2 = isLeft(w1, w2, v2);
                     var w2v1v2 = isLeft(w2, v1, v2);
                     var w2v2v3 = isLeft(w2, v2, v3);
-                    if (v1v2w2 >= 0 && v2w1w2 >= 0 && v2w2w3 < 0 && w1w2v2 >= 0 && w2v1v2 >= 0 && w2v2v3 < 0) {
+                    if (v1v2w2 >= 0 && v2w1w2 >= 0 && v2w2w3 < 0
+                        && w1w2v2 >= 0 && w2v1v2 >= 0 && w2v2v3 < 0) {
                         bt.ll = new BiTangent(i, j);
                     }
-                    else if (v1v2w2 <= 0 && v2w1w2 <= 0 && v2w2w3 > 0 && w1w2v2 <= 0 && w2v1v2 <= 0 && w2v2v3 > 0) {
+                    else if (v1v2w2 <= 0 && v2w1w2 <= 0 && v2w2w3 > 0
+                        && w1w2v2 <= 0 && w2v1v2 <= 0 && w2v2v3 > 0) {
                         bt.rr = new BiTangent(i, j);
                     }
-                    else if (v1v2w2 <= 0 && v2w1w2 > 0 && v2w2w3 <= 0 && w1w2v2 >= 0 && w2v1v2 < 0 && w2v2v3 >= 0) {
+                    else if (v1v2w2 <= 0 && v2w1w2 > 0 && v2w2w3 <= 0
+                        && w1w2v2 >= 0 && w2v1v2 < 0 && w2v2v3 >= 0) {
                         bt.rl = new BiTangent(i, j);
                     }
-                    else if (v1v2w2 >= 0 && v2w1w2 < 0 && v2w2w3 >= 0 && w1w2v2 <= 0 && w2v1v2 > 0 && w2v2v3 <= 0) {
+                    else if (v1v2w2 >= 0 && v2w1w2 < 0 && v2w2w3 >= 0
+                        && w1w2v2 <= 0 && w2v1v2 > 0 && w2v2v3 <= 0) {
                         bt.lr = new BiTangent(i, j);
                     }
                 }
@@ -1685,7 +1685,9 @@ var cola;
                 this.equality = equality;
             }
             Constraint.prototype.slack = function () {
-                return this.unsatisfiable ? Number.MAX_VALUE : this.right.scale * this.right.position() - this.gap - this.left.scale * this.left.position();
+                return this.unsatisfiable ? Number.MAX_VALUE
+                    : this.right.scale * this.right.position() - this.gap
+                        - this.left.scale * this.left.position();
             };
             return Constraint;
         })();
@@ -1781,8 +1783,7 @@ var cola;
                 return m;
             };
             Block.prototype.findMinLMBetween = function (lv, rv) {
-                this.compute_lm(lv, null, function () {
-                });
+                this.compute_lm(lv, null, function () { });
                 var m = null;
                 this.findPath(lv, null, rv, function (c, next) {
                     if (!c.equality && c.right === next && (m === null || c.lm < m.lm))
@@ -1967,10 +1968,7 @@ var cola;
                                     c.toString = () => c.left + "+" + c.gap + "<=" + c.right + " slack=" + c.slack() + " active=" + c.active;
                     DEBUG */
                 });
-                this.inactive = cs.map(function (c) {
-                    c.active = false;
-                    return c;
-                });
+                this.inactive = cs.map(function (c) { c.active = false; return c; });
                 this.bs = null;
             }
             Solver.prototype.cost = function () {
@@ -1979,10 +1977,7 @@ var cola;
             // set starting positions without changing desired positions.
             // Note: it throws away any previous block structure.
             Solver.prototype.setStartingPositions = function (ps) {
-                this.inactive = this.cs.map(function (c) {
-                    c.active = false;
-                    return c;
-                });
+                this.inactive = this.cs.map(function (c) { c.active = false; return c; });
                 this.bs = new Blocks(this.vs);
                 this.bs.forEach(function (b, i) { return b.posn = ps[i]; });
             };
@@ -2028,7 +2023,8 @@ var cola;
                             break;
                     }
                 }
-                if (deletePoint !== n && (minSlack < Solver.ZERO_UPPERBOUND && !v.active || v.equality)) {
+                if (deletePoint !== n &&
+                    (minSlack < Solver.ZERO_UPPERBOUND && !v.active || v.equality)) {
                     l[deletePoint] = l[n - 1];
                     l.length = n - 1;
                 }
@@ -2120,7 +2116,9 @@ var cola;
     var vpsc;
     (function (vpsc) {
         function computeGroupBounds(g) {
-            g.bounds = typeof g.leaves !== "undefined" ? g.leaves.reduce(function (r, c) { return c.bounds.union(r); }, Rectangle.empty()) : Rectangle.empty();
+            g.bounds = typeof g.leaves !== "undefined" ?
+                g.leaves.reduce(function (r, c) { return c.bounds.union(r); }, Rectangle.empty()) :
+                Rectangle.empty();
             if (typeof g.groups !== "undefined")
                 g.bounds = g.groups.reduce(function (r, c) { return computeGroupBounds(c).union(r); }, g.bounds);
             g.bounds = g.bounds.inflate(g.padding);
@@ -2134,15 +2132,9 @@ var cola;
                 this.y = y;
                 this.Y = Y;
             }
-            Rectangle.empty = function () {
-                return new Rectangle(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY);
-            };
-            Rectangle.prototype.cx = function () {
-                return (this.x + this.X) / 2;
-            };
-            Rectangle.prototype.cy = function () {
-                return (this.y + this.Y) / 2;
-            };
+            Rectangle.empty = function () { return new Rectangle(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY); };
+            Rectangle.prototype.cx = function () { return (this.x + this.X) / 2; };
+            Rectangle.prototype.cy = function () { return (this.y + this.Y) / 2; };
             Rectangle.prototype.overlapX = function (r) {
                 var ux = this.cx(), vx = r.cx();
                 if (ux <= vx && r.x < this.X)
@@ -2188,7 +2180,10 @@ var cola;
              * @return any intersection points found
              */
             Rectangle.prototype.lineIntersections = function (x1, y1, x2, y2) {
-                var sides = [[this.x, this.y, this.X, this.y], [this.X, this.y, this.X, this.Y], [this.X, this.Y, this.x, this.Y], [this.x, this.Y, this.x, this.y]];
+                var sides = [[this.x, this.y, this.X, this.y],
+                    [this.X, this.y, this.X, this.Y],
+                    [this.X, this.Y, this.x, this.Y],
+                    [this.x, this.Y, this.x, this.y]];
                 var intersections = [];
                 for (var i = 0; i < 4; ++i) {
                     var r = Rectangle.lineIntersection(x1, y1, x2, y2, sides[i][0], sides[i][1], sides[i][2], sides[i][3]);
@@ -2215,8 +2210,7 @@ var cola;
                     { x: this.X, y: this.y },
                     { x: this.X, y: this.Y },
                     { x: this.x, y: this.Y },
-                    { x: this.x, y: this.y }
-                ];
+                    { x: this.x, y: this.y }];
             };
             Rectangle.lineIntersection = function (x1, y1, x2, y2, x3, y3, x4, y4) {
                 var dx12 = x2 - x1, dx34 = x4 - x3, dy12 = y2 - y1, dy34 = y4 - y3, denominator = dy34 * dx12 - dx34 * dy12;
@@ -2310,10 +2304,8 @@ var cola;
         };
         function generateGroupConstraints(root, f, minSep, isContained) {
             if (isContained === void 0) { isContained = false; }
-            var padding = root.padding, gn = typeof root.groups !== 'undefined' ? root.groups.length : 0, ln = typeof root.leaves !== 'undefined' ? root.leaves.length : 0, childConstraints = !gn ? [] : root.groups.reduce(function (ccs, g) { return ccs.concat(generateGroupConstraints(g, f, minSep, true)); }, []), n = (isContained ? 2 : 0) + ln + gn, vs = new Array(n), rs = new Array(n), i = 0, add = function (r, v) {
-                rs[i] = r;
-                vs[i++] = v;
-            };
+            var padding = root.padding, gn = typeof root.groups !== 'undefined' ? root.groups.length : 0, ln = typeof root.leaves !== 'undefined' ? root.leaves.length : 0, childConstraints = !gn ? []
+                : root.groups.reduce(function (ccs, g) { return ccs.concat(generateGroupConstraints(g, f, minSep, true)); }, []), n = (isContained ? 2 : 0) + ln + gn, vs = new Array(n), rs = new Array(n), i = 0, add = function (r, v) { rs[i] = r; vs[i++] = v; };
             if (isContained) {
                 // if this group is contained by another, then we add two dummy vars and rectangles for the borders
                 var b = root.bounds, c = f.getCentre(b), s = f.getSize(b) / 2, open = f.getOpen(b), close = f.getClose(b), min = c - s + padding / 2, max = c + s - padding / 2;
@@ -2331,19 +2323,12 @@ var cola;
                 });
             var cs = generateConstraints(rs, vs, f, minSep);
             if (gn) {
-                vs.forEach(function (v) {
-                    v.cOut = [], v.cIn = [];
-                });
-                cs.forEach(function (c) {
-                    c.left.cOut.push(c), c.right.cIn.push(c);
-                });
+                vs.forEach(function (v) { v.cOut = [], v.cIn = []; });
+                cs.forEach(function (c) { c.left.cOut.push(c), c.right.cIn.push(c); });
                 root.groups.forEach(function (g) {
                     var gapAdjustment = (g.padding - f.getSize(g.bounds)) / 2;
                     g.minVar.cIn.forEach(function (c) { return c.gap += gapAdjustment; });
-                    g.minVar.cOut.forEach(function (c) {
-                        c.left = g.maxVar;
-                        c.gap += gapAdjustment;
-                    });
+                    g.minVar.cOut.forEach(function (c) { c.left = g.maxVar; c.gap += gapAdjustment; });
                 });
             }
             return childConstraints.concat(cs);
@@ -2523,9 +2508,15 @@ var cola;
             Projection.prototype.createConstraints = function (constraints) {
                 var _this = this;
                 var isSep = function (c) { return typeof c.type === 'undefined' || c.type === 'separation'; };
-                this.xConstraints = constraints.filter(function (c) { return c.axis === "x" && isSep(c); }).map(function (c) { return _this.createSeparation(c); });
-                this.yConstraints = constraints.filter(function (c) { return c.axis === "y" && isSep(c); }).map(function (c) { return _this.createSeparation(c); });
-                constraints.filter(function (c) { return c.type === 'alignment'; }).forEach(function (c) { return _this.createAlignment(c); });
+                this.xConstraints = constraints
+                    .filter(function (c) { return c.axis === "x" && isSep(c); })
+                    .map(function (c) { return _this.createSeparation(c); });
+                this.yConstraints = constraints
+                    .filter(function (c) { return c.axis === "y" && isSep(c); })
+                    .map(function (c) { return _this.createSeparation(c); });
+                constraints
+                    .filter(function (c) { return c.type === 'alignment'; })
+                    .forEach(function (c) { return _this.createAlignment(c); });
             };
             Projection.prototype.setupVariablesAndBounds = function (x0, y0, desired, getDesired) {
                 this.nodes.forEach(function (v, i) {
@@ -2730,7 +2721,8 @@ var PriorityQueue = (function () {
         var pairingNode;
         for (var i = 0, arg; arg = args[i]; ++i) {
             pairingNode = new PairingHeap(arg);
-            this.root = this.empty() ? pairingNode : this.root.merge(pairingNode, this.lessThan);
+            this.root = this.empty() ?
+                pairingNode : this.root.merge(pairingNode, this.lessThan);
         }
         return pairingNode;
     };
@@ -3032,7 +3024,9 @@ var cola;
             this.cols = this.getGridDim('x');
             this.rows = this.getGridDim('y');
             // create parents for each node or group that is a member of another's children 
-            this.groups.forEach(function (v) { return v.children.forEach(function (c) { return _this.nodes[c].parent = v; }); });
+            this.groups.forEach(function (v) {
+                return v.children.forEach(function (c) { return _this.nodes[c].parent = v; });
+            });
             // root claims the remaining orphans
             this.root = { children: [] };
             this.nodes.forEach(function (v) {
@@ -3065,9 +3059,11 @@ var cola;
             var rowx = colMids[0], rowX = colMids[colMids.length - 1];
             var coly = rowMids[0], colY = rowMids[rowMids.length - 1];
             // horizontal lines
-            var hlines = this.rows.map(function (r) { return { x1: rowx, x2: rowX, y1: r.y, y2: r.y }; }).concat(rowMids.map(function (m) { return { x1: rowx, x2: rowX, y1: m, y2: m }; }));
+            var hlines = this.rows.map(function (r) { return { x1: rowx, x2: rowX, y1: r.y, y2: r.y }; })
+                .concat(rowMids.map(function (m) { return { x1: rowx, x2: rowX, y1: m, y2: m }; }));
             // vertical lines
-            var vlines = this.cols.map(function (c) { return { x1: c.x, x2: c.x, y1: coly, y2: colY }; }).concat(colMids.map(function (m) { return { x1: m, x2: m, y1: coly, y2: colY }; }));
+            var vlines = this.cols.map(function (c) { return { x1: c.x, x2: c.x, y1: coly, y2: colY }; })
+                .concat(colMids.map(function (m) { return { x1: m, x2: m, y1: coly, y2: colY }; }));
             // the full set of lines
             var lines = hlines.concat(vlines);
             // we record the vertices associated with each line
@@ -3076,22 +3072,24 @@ var cola;
             this.verts = [];
             this.edges = [];
             // create vertices at the crossings of horizontal and vertical grid-lines
-            hlines.forEach(function (h) { return vlines.forEach(function (v) {
-                var p = new Vert(_this.verts.length, v.x1, h.y1);
-                h.verts.push(p);
-                v.verts.push(p);
-                _this.verts.push(p);
-                // assign vertices to the nodes immediately under them
-                var i = _this.backToFront.length;
-                while (i-- > 0) {
-                    var node = _this.backToFront[i], r = node.rect;
-                    var dx = Math.abs(p.x - r.cx()), dy = Math.abs(p.y - r.cy());
-                    if (dx < r.width() / 2 && dy < r.height() / 2) {
-                        p.node = node;
-                        break;
+            hlines.forEach(function (h) {
+                return vlines.forEach(function (v) {
+                    var p = new Vert(_this.verts.length, v.x1, h.y1);
+                    h.verts.push(p);
+                    v.verts.push(p);
+                    _this.verts.push(p);
+                    // assign vertices to the nodes immediately under them
+                    var i = _this.backToFront.length;
+                    while (i-- > 0) {
+                        var node = _this.backToFront[i], r = node.rect;
+                        var dx = Math.abs(p.x - r.cx()), dy = Math.abs(p.y - r.cy());
+                        if (dx < r.width() / 2 && dy < r.height() / 2) {
+                            p.node = node;
+                            break;
+                        }
                     }
-                }
-            }); });
+                });
+            });
             lines.forEach(function (l, li) {
                 // create vertices at the intersections of nodes and lines
                 _this.nodes.forEach(function (v, i) {
@@ -3115,9 +3113,7 @@ var cola;
                 }
             });
         }
-        GridRouter.prototype.avg = function (a) {
-            return a.reduce(function (x, y) { return x + y; }) / a.length;
-        };
+        GridRouter.prototype.avg = function (a) { return a.reduce(function (x, y) { return x + y; }) / a.length; };
         GridRouter.prototype.getGridDim = function (axis) {
             var columns = [];
             var ls = this.leaves.slice(0, this.leaves.length);
@@ -3175,7 +3171,9 @@ var cola;
             var lineageLookup = {};
             path.lineages.forEach(function (v) { return lineageLookup[v.id] = {}; });
             var obstacles = path.commonAncestor.children.filter(function (v) { return !(v in lineageLookup); });
-            path.lineages.filter(function (v) { return v.parent !== path.commonAncestor; }).forEach(function (v) { return obstacles = obstacles.concat(v.parent.children.filter(function (c) { return c !== v.id; })); });
+            path.lineages
+                .filter(function (v) { return v.parent !== path.commonAncestor; })
+                .forEach(function (v) { return obstacles = obstacles.concat(v.parent.children.filter(function (c) { return c !== v.id; })); });
             return obstacles.map(function (v) { return _this.nodes[v]; });
         };
         // for the given routes, extract all the segments orthogonal to the axis x
@@ -3274,6 +3272,7 @@ var cola;
         };
         GridRouter.nudgeSegments = function (routes, x, y, leftOf, gap) {
             var vsegmentsets = GridRouter.getSegmentSets(routes, x, y);
+            // scan the grouped (by x) segment sets to find co-linear bundles
             for (var i = 0; i < vsegmentsets.length; i++) {
                 var ss = vsegmentsets[i];
                 var events = [];
@@ -3306,9 +3305,7 @@ var cola;
             var _this = this;
             var routePaths = edges.map(function (e) { return _this.route(source(e), target(e)); });
             var order = cola.GridRouter.orderEdges(routePaths);
-            var routes = routePaths.map(function (e) {
-                return cola.GridRouter.makeSegments(e);
-            });
+            var routes = routePaths.map(function (e) { return cola.GridRouter.makeSegments(e); });
             cola.GridRouter.nudgeSegments(routes, 'x', 'y', order, gap);
             cola.GridRouter.nudgeSegments(routes, 'y', 'x', order, gap);
             return routes;
@@ -3415,8 +3412,10 @@ var cola;
             this.obstacles.forEach(function (o) { return obstacleLookup[o.id] = o; });
             this.passableEdges = this.edges.filter(function (e) {
                 var u = _this.verts[e.source], v = _this.verts[e.target];
-                return !(u.node && u.node.id in obstacleLookup || v.node && v.node.id in obstacleLookup);
+                return !(u.node && u.node.id in obstacleLookup
+                    || v.node && v.node.id in obstacleLookup);
             });
+            // add dummy segments linking ports inside source and target
             for (var i = 1; i < source.ports.length; i++) {
                 var u = source.ports[0].id;
                 var v = source.ports[i].id;
@@ -3451,7 +3450,10 @@ var cola;
             var pathPoints = shortestPath.reverse().map(function (vi) { return _this.verts[vi]; });
             pathPoints.push(this.nodes[target.id].ports[0]);
             // filter out any extra end points that are inside the source or target (i.e. the dummy segments above)
-            return pathPoints.filter(function (v, i) { return !(i < pathPoints.length - 1 && pathPoints[i + 1].node === source && v.node === source || i > 0 && v.node === target && pathPoints[i - 1].node === target); });
+            return pathPoints.filter(function (v, i) {
+                return !(i < pathPoints.length - 1 && pathPoints[i + 1].node === source && v.node === source
+                    || i > 0 && v.node === target && pathPoints[i - 1].node === target);
+            });
         };
         return GridRouter;
     })();
@@ -3515,7 +3517,9 @@ var cola;
      */
     function jaccardLinkLengths(links, la, w) {
         if (w === void 0) { w = 1; }
-        computeLinkLengths(links, w, function (a, b) { return Math.min(Object.keys(a).length, Object.keys(b).length) < 1.1 ? 0 : intersectionCount(a, b) / unionCount(a, b); }, la);
+        computeLinkLengths(links, w, function (a, b) {
+            return Math.min(Object.keys(a).length, Object.keys(b).length) < 1.1 ? 0 : intersectionCount(a, b) / unionCount(a, b);
+        }, la);
     }
     cola.jaccardLinkLengths = jaccardLinkLengths;
     /** generate separation constraints for all edges unless both their source and sink are in the same strongly connected component
@@ -3524,7 +3528,9 @@ var cola;
     function generateDirectedEdgeConstraints(n, links, axis, la) {
         var components = stronglyConnectedComponents(n, links, la);
         var nodes = {};
-        components.filter(function (c) { return c.length > 1; }).forEach(function (c) { return c.forEach(function (v) { return nodes[v] = c; }); });
+        components.filter(function (c) { return c.length > 1; }).forEach(function (c) {
+            return c.forEach(function (v) { return nodes[v] = c; });
+        });
         var constraints = [];
         links.forEach(function (l) {
             var ui = la.getSourceIndex(l), vi = la.getTargetIndex(l), u = nodes[ui], v = nodes[vi];
@@ -3570,12 +3576,14 @@ var cola;
         var index = new Array(numVertices);
         var lowValue = new Array(numVertices);
         var active = new Array(numVertices);
+        //Initialize tables
         for (var i = 0; i < numVertices; ++i) {
             adjList[i] = [];
             index[i] = -1;
             lowValue[i] = 0;
             active[i] = false;
         }
+        //Build adjacency list representation
         for (var i = 0; i < edges.length; ++i) {
             adjList[la.getSourceIndex(edges[i])].push(la.getTargetIndex(edges[i]));
         }
@@ -3613,6 +3621,7 @@ var cola;
                 components.push(component);
             }
         }
+        //Run strong connect starting from each vertex
         for (var i = 0; i < numVertices; ++i) {
             if (index[i] < 0) {
                 strongConnect(i);
