@@ -1,6 +1,6 @@
 {
-  "name": "webcola",
-  "version": "3.0.1",
+  "name": "webcola-Thetus",
+  "version": "3.0.1-Thetus",
   "devDependencies": {
     "async": "~0.6.2",
     "grunt": "~0.4.2",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tgdwyer/WebCola.git"
+    "url": "https://github.com/BordRGal32/WebCola.git"
   },
   "keywords": [
     "Graph",
@@ -30,10 +30,12 @@
     "Constraints",
     "Optimization"
   ],
-  "author": "Tim Dwyer",
+
+  "moduleType": ["globals"],
+  "author": ["Tim Dwyer", "Lauren Yeiser"],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/tgdwyer/WebCola/issues"
   },
-  "homepage": "https://github.com/tgdwyer/WebCola"
+  "homepage": "https://github.com/BordRGal32/WebCola"
 }
