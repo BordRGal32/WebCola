@@ -45,6 +45,7 @@ module cola {
                 o;
 
             this._descent.locks.clear();
+            var allNodesFixed: boolean = true;
             for (var i = 0; i < n; ++i) {
                 o = this._nodes[i];
                 if (o.fixed) {
@@ -54,9 +55,11 @@ module cola {
                     }
                     var p = [o.px, o.py];
                     this._descent.locks.add(i, p);
+                } else {
+                  allNodesFixed = false;
                 }
             }
-
+            this._descent.allNodesFixed = allNodesFixed;
             var s1 = this._descent.rungeKutta();
             //var s1 = descent.reduceStress();
             if (s1 === 0) {

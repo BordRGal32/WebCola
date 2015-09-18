@@ -25,7 +25,7 @@ module cola {
             this.locks = {};
         }
         /**
-         * @isEmpty 
+         * @isEmpty
          * @returns false if no locks exist
          */
         isEmpty(): boolean {
@@ -74,6 +74,8 @@ module cola {
 
         public locks: Locks;
 
+        public allNodesFixed: boolean = false;
+
         private static zeroDistance: number = 1e-10;
         private minD: number;
 
@@ -96,7 +98,7 @@ module cola {
          * @method constructor
          * @param x {number[][]} initial coordinates for nodes
          * @param D {number[][]} matrix of desired distances between pairs of nodes
-         * @param G {number[][]} [default=null] if specified, G is a matrix of weights for goal terms between pairs of nodes.  
+         * @param G {number[][]} [default=null] if specified, G is a matrix of weights for goal terms between pairs of nodes.
          * If G[i][j] > 1 and the separation between nodes i and j is greater than their ideal distance, then there is no contribution for this pair to the goal
          * If G[i][j] <= 1 then it is used as a weighting on the contribution of the variance between ideal and actual separation between i and j to the goal function
          */
@@ -172,70 +174,72 @@ module cola {
 
         // compute first and second derivative information storing results in this.g and this.H
         public computeDerivatives(x: number[][]) {
-            var n: number = this.n;
-            if (n < 1) return;
-            var i: number;
-/* DEBUG
-            for (var u: number = 0; u < n; ++u)
-                for (i = 0; i < this.k; ++i)
-                    if (isNaN(x[i][u])) debugger;
-DEBUG */
-            var d: number[] = new Array(this.k);
-            var d2: number[] = new Array(this.k);
-            var Huu: number[] = new Array(this.k);
-            var maxH: number = 0;
-            for (var u: number = 0; u < n; ++u) {
-                for (i = 0; i < this.k; ++i) Huu[i] = this.g[i][u] = 0;
-                for (var v = 0; v < n; ++v) {
-                    if (u === v) continue;
+            if(this.allNodesFixed === false) {
+              var n: number = this.n;
+              if (n < 1) return;
+              var i: number;
+  /* DEBUG
+              for (var u: number = 0; u < n; ++u)
+                  for (i = 0; i < this.k; ++i)
+                      if (isNaN(x[i][u])) debugger;
+  DEBUG */
+              var d: number[] = new Array(this.k);
+              var d2: number[] = new Array(this.k);
+              var Huu: number[] = new Array(this.k);
+              var maxH: number = 0;
+              for (var u: number = 0; u < n; ++u) {
+                  for (i = 0; i < this.k; ++i) Huu[i] = this.g[i][u] = 0;
+                  for (var v = 0; v < n; ++v) {
+                      if (u === v) continue;
 
-                    // The following loop randomly displaces nodes that are at identical positions
-                    var maxDisplaces = n; // avoid infinite loop in the case of numerical issues, such as huge values
-                    while (maxDisplaces--) {
-                        var sd2 = 0;
-                        for (i = 0; i < this.k; ++i) {
-                            var dx = d[i] = x[i][u] - x[i][v];
-                            sd2 += d2[i] = dx * dx;
-                        }
-                        if (sd2 > 1e-9) break;
-                        var rd = this.offsetDir();
-                        for (i = 0; i < this.k; ++i) x[i][v] += rd[i];
-                    }
-                    var l: number = Math.sqrt(sd2);
-                    var D: number = this.D[u][v];
-                    var weight = this.G != null ? this.G[u][v] : 1;
-                    if (weight > 1 && l > D || !isFinite(D)) {
-                        for (i = 0; i < this.k; ++i) this.H[i][u][v] = 0;
-                        continue;
-                    }
-                    if (weight > 1) {
-                        weight = 1;
-                    }
-                    var D2: number = D * D;
-                    var gs: number = weight * (l - D) / (D2 * l);
-                    var hs: number = -weight / (D2 * l * l * l);
-                    if (!isFinite(gs))
-                        console.log(gs);
-                    for (i = 0; i < this.k; ++i) {
-                        this.g[i][u] += d[i] * gs;
-                        Huu[i] -= this.H[i][u][v] = hs * (D * (d2[i] - sd2) + l * sd2);
-                    }
-                }
-                for (i = 0; i < this.k; ++i) maxH = Math.max(maxH, this.H[i][u][u] = Huu[i]);
-            }
-            if (!this.locks.isEmpty()) {
-                this.locks.apply((u, p) => {
-                    for (i = 0; i < this.k; ++i) {
-                        this.H[i][u][u] += maxH;
-                        this.g[i][u] -= maxH * (p[i] - x[i][u]);
-                    }
-                });
+                      // The following loop randomly displaces nodes that are at identical positions
+                      var maxDisplaces = n; // avoid infinite loop in the case of numerical issues, such as huge values
+                      while (maxDisplaces--) {
+                          var sd2 = 0;
+                          for (i = 0; i < this.k; ++i) {
+                              var dx = d[i] = x[i][u] - x[i][v];
+                              sd2 += d2[i] = dx * dx;
+                          }
+                          if (sd2 > 1e-9) break;
+                          var rd = this.offsetDir();
+                          for (i = 0; i < this.k; ++i) x[i][v] += rd[i];
+                      }
+                      var l: number = Math.sqrt(sd2);
+                      var D: number = this.D[u][v];
+                      var weight = this.G != null ? this.G[u][v] : 1;
+                      if (weight > 1 && l > D || !isFinite(D)) {
+                          for (i = 0; i < this.k; ++i) this.H[i][u][v] = 0;
+                          continue;
+                      }
+                      if (weight > 1) {
+                          weight = 1;
+                      }
+                      var D2: number = D * D;
+                      var gs: number = weight * (l - D) / (D2 * l);
+                      var hs: number = -weight / (D2 * l * l * l);
+                      if (!isFinite(gs))
+                          console.log(gs);
+                      for (i = 0; i < this.k; ++i) {
+                          this.g[i][u] += d[i] * gs;
+                          Huu[i] -= this.H[i][u][v] = hs * (D * (d2[i] - sd2) + l * sd2);
+                      }
+                  }
+                  for (i = 0; i < this.k; ++i) maxH = Math.max(maxH, this.H[i][u][u] = Huu[i]);
+              }
+              if (!this.locks.isEmpty()) {
+                  this.locks.apply((u, p) => {
+                      for (i = 0; i < this.k; ++i) {
+                          this.H[i][u][u] += maxH;
+                          this.g[i][u] -= maxH * (p[i] - x[i][u]);
+                      }
+                  });
+              }
             }
 /* DEBUG
             for (var u: number = 0; u < n; ++u)
                 for (i = 0; i < this.k; ++i) {
                     if (isNaN(this.g[i][u])) debugger;
-                    for (var v: number = 0; v < n; ++v) 
+                    for (var v: number = 0; v < n; ++v)
                         if (isNaN(this.H[i][u][v])) debugger;
                 }
 DEBUG */
@@ -309,19 +313,21 @@ DEBUG */
         }
 
         private computeNextPosition(x0: number[][], r: number[][]): void {
-            this.computeDerivatives(x0);
-            var alpha = this.computeStepSize(this.g);
-            this.stepAndProject(x0, r, this.g, alpha);
+            if(this.allNodesFixed === false) {
+              this.computeDerivatives(x0);
+              var alpha = this.computeStepSize(this.g);
+              this.stepAndProject(x0, r, this.g, alpha);
 
-            for (var u: number = 0; u < this.n; ++u)
-                for (var i = 0; i < this.k; ++i)
-                    if (isNaN(r[i][u])) debugger;
+              for (var u: number = 0; u < this.n; ++u)
+                  for (var i = 0; i < this.k; ++i)
+                      if (isNaN(r[i][u])) debugger;
 
-            if (this.project) {
-                this.matrixApply((i, j) => this.e[i][j] = x0[i][j] - r[i][j]);
-                var beta = this.computeStepSize(this.e);
-                beta = Math.max(0.2, Math.min(beta, 1));
-                this.stepAndProject(x0, r, this.e, beta);
+              if (this.project) {
+                  this.matrixApply((i, j) => this.e[i][j] = x0[i][j] - r[i][j]);
+                  var beta = this.computeStepSize(this.e);
+                  beta = Math.max(0.2, Math.min(beta, 1));
+                  this.stepAndProject(x0, r, this.e, beta);
+              }
             }
         }
 

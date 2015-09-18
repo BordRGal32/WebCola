@@ -284,6 +284,7 @@ var cola;
             }
             var n = this._nodes.length, m = this._links.length, o;
             this._descent.locks.clear();
+            var allNodesFixed = true;
             for (var i = 0; i < n; ++i) {
                 o = this._nodes[i];
                 if (o.fixed) {
@@ -294,7 +295,11 @@ var cola;
                     var p = [o.px, o.py];
                     this._descent.locks.add(i, p);
                 }
+                else {
+                    allNodesFixed = false;
+                }
             }
+            this._descent.allNodesFixed = allNodesFixed;
             var s1 = this._descent.rungeKutta();
             //var s1 = descent.reduceStress();
             if (s1 === 0) {
@@ -862,6 +867,7 @@ var cola;
             this.D = D;
             this.G = G;
             this.threshold = 0.0001;
+            this.allNodesFixed = false;
             this.random = new PseudoRandom();
             this.project = null;
             this.x = x;
@@ -935,70 +941,72 @@ var cola;
         // compute first and second derivative information storing results in this.g and this.H
         Descent.prototype.computeDerivatives = function (x) {
             var _this = this;
-            var n = this.n;
-            if (n < 1)
-                return;
-            var i;
-            /* DEBUG
-                        for (var u: number = 0; u < n; ++u)
+            if (this.allNodesFixed === false) {
+                var n = this.n;
+                if (n < 1)
+                    return;
+                var i;
+                /* DEBUG
+                            for (var u: number = 0; u < n; ++u)
+                                for (i = 0; i < this.k; ++i)
+                                    if (isNaN(x[i][u])) debugger;
+                DEBUG */
+                var d = new Array(this.k);
+                var d2 = new Array(this.k);
+                var Huu = new Array(this.k);
+                var maxH = 0;
+                for (var u = 0; u < n; ++u) {
+                    for (i = 0; i < this.k; ++i)
+                        Huu[i] = this.g[i][u] = 0;
+                    for (var v = 0; v < n; ++v) {
+                        if (u === v)
+                            continue;
+                        // The following loop randomly displaces nodes that are at identical positions
+                        var maxDisplaces = n; // avoid infinite loop in the case of numerical issues, such as huge values
+                        while (maxDisplaces--) {
+                            var sd2 = 0;
+                            for (i = 0; i < this.k; ++i) {
+                                var dx = d[i] = x[i][u] - x[i][v];
+                                sd2 += d2[i] = dx * dx;
+                            }
+                            if (sd2 > 1e-9)
+                                break;
+                            var rd = this.offsetDir();
                             for (i = 0; i < this.k; ++i)
-                                if (isNaN(x[i][u])) debugger;
-            DEBUG */
-            var d = new Array(this.k);
-            var d2 = new Array(this.k);
-            var Huu = new Array(this.k);
-            var maxH = 0;
-            for (var u = 0; u < n; ++u) {
-                for (i = 0; i < this.k; ++i)
-                    Huu[i] = this.g[i][u] = 0;
-                for (var v = 0; v < n; ++v) {
-                    if (u === v)
-                        continue;
-                    // The following loop randomly displaces nodes that are at identical positions
-                    var maxDisplaces = n; // avoid infinite loop in the case of numerical issues, such as huge values
-                    while (maxDisplaces--) {
-                        var sd2 = 0;
-                        for (i = 0; i < this.k; ++i) {
-                            var dx = d[i] = x[i][u] - x[i][v];
-                            sd2 += d2[i] = dx * dx;
+                                x[i][v] += rd[i];
                         }
-                        if (sd2 > 1e-9)
-                            break;
-                        var rd = this.offsetDir();
-                        for (i = 0; i < this.k; ++i)
-                            x[i][v] += rd[i];
+                        var l = Math.sqrt(sd2);
+                        var D = this.D[u][v];
+                        var weight = this.G != null ? this.G[u][v] : 1;
+                        if (weight > 1 && l > D || !isFinite(D)) {
+                            for (i = 0; i < this.k; ++i)
+                                this.H[i][u][v] = 0;
+                            continue;
+                        }
+                        if (weight > 1) {
+                            weight = 1;
+                        }
+                        var D2 = D * D;
+                        var gs = weight * (l - D) / (D2 * l);
+                        var hs = -weight / (D2 * l * l * l);
+                        if (!isFinite(gs))
+                            console.log(gs);
+                        for (i = 0; i < this.k; ++i) {
+                            this.g[i][u] += d[i] * gs;
+                            Huu[i] -= this.H[i][u][v] = hs * (D * (d2[i] - sd2) + l * sd2);
+                        }
                     }
-                    var l = Math.sqrt(sd2);
-                    var D = this.D[u][v];
-                    var weight = this.G != null ? this.G[u][v] : 1;
-                    if (weight > 1 && l > D || !isFinite(D)) {
-                        for (i = 0; i < this.k; ++i)
-                            this.H[i][u][v] = 0;
-                        continue;
-                    }
-                    if (weight > 1) {
-                        weight = 1;
-                    }
-                    var D2 = D * D;
-                    var gs = weight * (l - D) / (D2 * l);
-                    var hs = -weight / (D2 * l * l * l);
-                    if (!isFinite(gs))
-                        console.log(gs);
-                    for (i = 0; i < this.k; ++i) {
-                        this.g[i][u] += d[i] * gs;
-                        Huu[i] -= this.H[i][u][v] = hs * (D * (d2[i] - sd2) + l * sd2);
-                    }
+                    for (i = 0; i < this.k; ++i)
+                        maxH = Math.max(maxH, this.H[i][u][u] = Huu[i]);
                 }
-                for (i = 0; i < this.k; ++i)
-                    maxH = Math.max(maxH, this.H[i][u][u] = Huu[i]);
-            }
-            if (!this.locks.isEmpty()) {
-                this.locks.apply(function (u, p) {
-                    for (i = 0; i < _this.k; ++i) {
-                        _this.H[i][u][u] += maxH;
-                        _this.g[i][u] -= maxH * (p[i] - x[i][u]);
-                    }
-                });
+                if (!this.locks.isEmpty()) {
+                    this.locks.apply(function (u, p) {
+                        for (i = 0; i < _this.k; ++i) {
+                            _this.H[i][u][u] += maxH;
+                            _this.g[i][u] -= maxH * (p[i] - x[i][u]);
+                        }
+                    });
+                }
             }
             /* DEBUG
                         for (var u: number = 0; u < n; ++u)
@@ -1079,18 +1087,20 @@ var cola;
         };
         Descent.prototype.computeNextPosition = function (x0, r) {
             var _this = this;
-            this.computeDerivatives(x0);
-            var alpha = this.computeStepSize(this.g);
-            this.stepAndProject(x0, r, this.g, alpha);
-            for (var u = 0; u < this.n; ++u)
-                for (var i = 0; i < this.k; ++i)
-                    if (isNaN(r[i][u]))
-                        debugger;
-            if (this.project) {
-                this.matrixApply(function (i, j) { return _this.e[i][j] = x0[i][j] - r[i][j]; });
-                var beta = this.computeStepSize(this.e);
-                beta = Math.max(0.2, Math.min(beta, 1));
-                this.stepAndProject(x0, r, this.e, beta);
+            if (this.allNodesFixed === false) {
+                this.computeDerivatives(x0);
+                var alpha = this.computeStepSize(this.g);
+                this.stepAndProject(x0, r, this.g, alpha);
+                for (var u = 0; u < this.n; ++u)
+                    for (var i = 0; i < this.k; ++i)
+                        if (isNaN(r[i][u]))
+                            debugger;
+                if (this.project) {
+                    this.matrixApply(function (i, j) { return _this.e[i][j] = x0[i][j] - r[i][j]; });
+                    var beta = this.computeStepSize(this.e);
+                    beta = Math.max(0.2, Math.min(beta, 1));
+                    this.stepAndProject(x0, r, this.e, beta);
+                }
             }
         };
         Descent.prototype.run = function (iterations) {

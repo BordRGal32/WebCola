@@ -36,6 +36,7 @@ var cola;
             }
             var n = this._nodes.length, m = this._links.length, o;
             this._descent.locks.clear();
+            var allNodesFixed = true;
             for (var i = 0; i < n; ++i) {
                 o = this._nodes[i];
                 if (o.fixed) {
@@ -46,7 +47,11 @@ var cola;
                     var p = [o.px, o.py];
                     this._descent.locks.add(i, p);
                 }
+                else {
+                    allNodesFixed = false;
+                }
             }
+            this._descent.allNodesFixed = allNodesFixed;
             var s1 = this._descent.rungeKutta();
             if (s1 === 0) {
                 this._alpha = 0;
